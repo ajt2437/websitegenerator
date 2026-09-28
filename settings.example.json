@@ -83,5 +83,29 @@
       "{{BUSINESS_NAME}}",
       "{{MEETING_DATE}}"
     ]
+  },
+  "firebase": {
+    "project_id": "<YOUR_FIREBASE_PROJECT_ID>",
+    "one_site_per_client": true
+  },
+  "packages": {
+    "website": {
+      "name": "Package 1 \u2013 Website",
+      "one_time_usd": 500,
+      "monthly_usd": 25,
+      "analytics": false
+    },
+    "website_analytics": {
+      "name": "Package 2 \u2013 Website + Analytics",
+      "one_time_usd": 750,
+      "monthly_usd": 35,
+      "analytics": true,
+      "includes": [
+        "Google Analytics (GA4 property per client)",
+        "Call & email click tracking",
+        "Google Search Console",
+        "Monthly visitor report"
+      ]
+    }
   }
 }

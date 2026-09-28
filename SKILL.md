@@ -90,13 +90,16 @@ The lead pipeline lives on the Trello board named in `settings.json` → `trello
 
 ## Client release — Firebase Hosting
 
-Vercel is for speculative previews only (noindex). When the operator says a prospect has signed, publish that business's approved preview to Firebase Hosting; never do this during a prospecting batch or without that instruction. Follow [Client release](references/client-release.md). Summary:
+Vercel is for speculative previews only (noindex). When the operator says a prospect has signed, publish that business's approved preview to Firebase Hosting; never do this during a prospecting batch or without that instruction. All clients live in **one** Firebase project (`settings.json` → `firebase.project_id`), each as its **own Hosting site** with its own custom domain. Follow [Client release](references/client-release.md). Summary:
 
-1. Get the site ID (`runs/quick/ID`) and the client's Firebase project ID from the operator; one Firebase project per client. Ask only for what is missing.
-2. `python3 tools/client_release.py prepare --id ID --project PROJECT_ID [--domain www.client.com]` — copies the preview to `runs/clients/ID/`, strips noindex, writes `firebase.json`/`.firebaserc`, excludes `.env*` and `.vercel`.
-3. `python3 tools/client_release.py deploy --id ID` — needs a one-time `npx firebase-tools login` on the operator's computer; if the agent's shell has no network or login, hand the operator this exact command.
-4. Verify `https://PROJECT_ID.web.app` loads logged-out, routes and call/email links work, and the page has no noindex tag.
-5. Custom domain: the operator adds it in Firebase console → Hosting → Add custom domain and sets the DNS records at the client's registrar. Record the live URL and domain with the job.
+1. Get the site ID (`runs/quick/ID`) and choose a Hosting site name from the business name (e.g. `quantum-electric`; globally unique, lowercase, digits, dashes). Ask only for what is missing.
+2. `python3 tools/client_release.py create-site --site SITE` (once per client).
+3. `python3 tools/client_release.py prepare --id ID --site SITE [--domain www.client.com]` — copies the preview to `runs/clients/ID/`, strips noindex, writes `firebase.json` (with `site`) and `.firebaserc`, excludes `.env*` and `.vercel`.
+4. `python3 tools/client_release.py deploy --id ID` — needs a one-time `npx firebase-tools login` on the operator's computer; if the agent's shell has no network or login, hand the operator the exact commands.
+5. Verify `https://SITE.web.app` loads logged-out, routes and call/email links work, and the page has no noindex tag.
+6. Custom domain: `python3 tools/client_release.py domain --site SITE --domain client.com --domain www.client.com` registers it and prints the DNS records; the operator sets them at the client's registrar only on the agreed switch-over date; check with `domain-status`. Record the live URL and domain on the Trello card and move it to **Leads · Live (Firebase)**.
+
+Package 1 ($500) has no analytics. Package 2 ($750 + $35/month) includes analytics, which the generator does not yet add; flag it to the operator before go-live.
 
 ## Finish
 
