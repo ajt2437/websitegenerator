@@ -12,7 +12,7 @@ What this repo does: find local businesses with weak-looking websites → genera
 ## You still need to do
 
 1. **Install Python 3** (https://www.python.org/downloads/, tick "Add python.exe to PATH"). Check: `py -3 --version`.
-2. **Fill in `settings.json` → `sender`**: full name, phone, email, first and last name. These appear in every outreach message.
+2. **Copy `settings.example.json` to `settings.json`, then fill in `sender`** (settings.json is gitignored): full name, phone, email, first and last name. These appear in every outreach message.
 3. **Firecrawl** (scrapes prospect homepages/contact pages): sign up at https://www.firecrawl.dev, copy the API key, paste it after `FIRECRAWL_API_KEY=` in `.env`. Don't share the key in chat.
 4. **Vercel** (hosts previews): create a free account at https://vercel.com. Install Node.js LTS (https://nodejs.org), then run `npm i -g pnpm` and `pnpm dlx vercel@59.16.0 login`. Run `pnpm dlx vercel@59.16.0 teams ls` and put your scope slug in `settings.json` → `vercel_scope`.
 5. Optional, only if you edit the template: `py -3 tools\quick_site.py prepare` (needs Node.js).

@@ -19,3 +19,7 @@ runs/*
 data/*
 !data/.gitkeep
 diagnostics/
+leads.csv
+*.leads.csv
+# Personal settings (copy settings.example.json to settings.json)
+settings.json
