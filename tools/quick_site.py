@@ -87,6 +87,8 @@ def create(data, output_root=None):
         page = page.replace('in your area', 'for your home').replace('in your local area', 'for your home')
         (site / 'index.html').write_text(page, encoding='utf-8')
         shutil.copyfile(source / 'vercel.json', site / 'vercel.json')
+        # `vercel link` writes .env.local (an OIDC token) into the site; never upload it.
+        (site / '.vercelignore').write_text('.env*\n.vercel\n', encoding='utf-8')
         shutil.copyfile(source / 'stock-images.json', staging / 'stock-images.json')
         result = {'id': identifier, 'template': template, 'business': business, 'site': str(destination / 'site'), 'seconds': round(time.perf_counter()-started, 3)}
         (staging / 'website.json').write_text(json.dumps(result, indent=2), encoding='utf-8')

@@ -13,14 +13,14 @@ Subject if requested: `I made a website preview for [Business]`
 >
 > You can take a look here: [verified preview URL]
 >
-> The website is totally free — you just pay for hosting.
+> It's yours for a one-time $500, plus hosting costs.
 >
 > If you'd like help setting it up, text me on <SENDER_PHONE> or email <SENDER_EMAIL>.
 >
 > Best,
 > <SENDER_FIRST_NAME>
 
-Replace `<SENDER_PHONE>`, `<SENDER_EMAIL>` and `<SENDER_FIRST_NAME>` with `settings.json` → `sender` values; never send a message that still contains a placeholder. Copy this message exactly, changing only the verified preview URL and the business name in the optional subject. Do not add an observed issue, 'I checked your website', SEO claims, custom praise, or a rewritten opening. Visual qualification findings remain internal evidence; 'looks a little old' describes visual appearance, not the site's actual age. Keep the free-website/paid-hosting offer and sender details above. Do not spin messages or send follow-ups to hit a quota.
+Replace `<SENDER_PHONE>`, `<SENDER_EMAIL>` and `<SENDER_FIRST_NAME>` with `settings.json` → `sender` values; never send a message that still contains a placeholder. Copy this message exactly, changing only the verified preview URL and the business name in the optional subject. Do not add an observed issue, 'I checked your website', SEO claims, custom praise, or a rewritten opening. Visual qualification findings remain internal evidence; 'looks a little old' describes visual appearance, not the site's actual age. Keep the offer ($500 one-time for the website, plus hosting at cost) and sender details above. Do not name a hosting amount in the first message; the operator quotes it when the business replies. Do not spin messages or send follow-ups to hit a quota.
 
 ## Confirmation classification
 

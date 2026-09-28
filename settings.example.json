@@ -26,12 +26,14 @@
     "submit_by_default": false,
     "include_preview_link": true,
     "language": "en",
-    "offer": "Website is free; the business pays for hosting.",
+    "offer": "Website is a one-time $500; the business also pays hosting costs (quoted by the operator on reply).",
     "skip_required_surname": false,
     "allow_inspection_forms": true,
     "skip_captchas": true,
     "complete_after_submit": true,
-    "message_mode": "fixed"
+    "message_mode": "fixed",
+    "website_price_usd": 500,
+    "monthly_hosting_usd": 25
   },
   "worker_model": "gpt-5.6-terra",
   "worker_reasoning_effort": "low",
@@ -59,5 +61,27 @@
     "max_concurrent_business_scrapes": 2,
     "visual_assessment": "agent-views-saved-screenshot",
     "final_form_check": "live-browser"
+  },
+  "trello": {
+    "board_name": "<YOUR_TRELLO_BOARD>",
+    "board_url": "",
+    "lists": {
+      "preview_sent": "Leads \u00b7 Preview Sent",
+      "replied": "Leads \u00b7 Replied",
+      "signed": "Leads \u00b7 Signed ($500)",
+      "live": "Leads \u00b7 Live (Firebase)",
+      "not_interested": "Leads \u00b7 Not Interested"
+    },
+    "follow_up_days": 5
+  },
+  "contracts": {
+    "google_drive_leads_folder_id": "<LEADS_FOLDER_ID>",
+    "proposal_template_doc_id": "<TEMPLATE_DOC_ID>",
+    "placeholders": [
+      "{{CLIENT_FULL_NAME}}",
+      "{{CLIENT_FIRST_NAME}}",
+      "{{BUSINESS_NAME}}",
+      "{{MEETING_DATE}}"
+    ]
   }
 }

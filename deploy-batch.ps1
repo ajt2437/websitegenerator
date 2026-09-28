@@ -18,8 +18,12 @@ foreach ($s in $sites) {
   try {
     pnpm dlx vercel@59.16.0 link --yes --project $project --scope $scope | Out-Host
     $deployUrl = (pnpm dlx vercel@59.16.0 deploy --prod --yes --scope $scope | Select-Object -Last 1).Trim()
-    $out += [pscustomobject]@{ id = $s.id; name = $s.business.name; project = $project; deploy_url = $deployUrl; production_url = "https://$project.vercel.app" }
-    Write-Host "Deployed: $deployUrl" -ForegroundColor Green
+    # The deploy URL is behind Vercel login; the first alias is the public one (Vercel may shorten the project name).
+    $publicUrl = (pnpm dlx vercel@59.16.0 inspect $deployUrl --scope $scope 2>&1 | Select-String -Pattern 'https://\S+\.vercel\.app' -AllMatches |
+      ForEach-Object { $_.Matches.Value } | Where-Object { $_ -ne $deployUrl } | Select-Object -First 1)
+    if (-not $publicUrl) { throw "No public alias found for $deployUrl" }
+    $out += [pscustomobject]@{ id = $s.id; name = $s.business.name; project = $project; deploy_url = $deployUrl; preview_url = $publicUrl }
+    Write-Host "Deployed: $publicUrl" -ForegroundColor Green
   } catch {
     Write-Host "FAILED: $_" -ForegroundColor Red
     $out += [pscustomobject]@{ id = $s.id; name = $s.business.name; project = $project; error = "$_" }
@@ -28,4 +32,4 @@ foreach ($s in $sites) {
 $dest = Join-Path $root ($ResultFile -replace '\.result\.json$', '.deployed.json')
 $out | ConvertTo-Json | Set-Content -Encoding UTF8 $dest
 Write-Host "`nSaved URLs to $dest" -ForegroundColor Cyan
-$out | Format-Table name, production_url -AutoSize
+$out | Format-Table name, preview_url -AutoSize

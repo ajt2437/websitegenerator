@@ -33,6 +33,16 @@ The dashboard is a contact sheet for batch requests, live progress, generated pr
 - Outreach consent depends on `settings.json` → `outreach.submit_by_default`. It is currently `false` (review-first): run the flow through deployment and public verification, prepare each fixed message from [outreach.md](references/outreach.md) with the operator's saved sender details, then present the ready jobs to the operator and submit only the ones they approve. When the setting is `true`, a real-batch request is standing consent to submit without re-approval; carry that authorization into every assigned worker. Refuse to send while any `settings.json` sender field or `vercel_scope` still contains a `<...>` placeholder. Honor a later dry-run/review-only instruction or withdrawal of consent. A non-overridable tool-level confirmation at the final UI submit action remains an execution constraint, not a workflow decision.
 - Start `python3 tools/control.py serve --port 4310` if the dashboard is not already serving this application's `/api/state`; open its localhost URL in Codex. If the port belongs to something else, select a free port and report it. The dashboard displays real ledger updates; it **does not launch Codex agents**. Its “queue” action stores a request for the coordinator. Do not claim workers are running until they are spawned and claimed.
 - Read [coordination.md](references/coordination.md) for commands, capacity, ownership and recovery. Start from `python3 tools/control.py state` so prior contacts and unfinished work are visible. Resume explicitly selected unfinished work before creating duplicates.
+- Connectors are set up in claude.ai → Settings → Connectors; in Claude Code the connector's tools appear in the session. **Always confirm a connector works before any step that uses it:** run its read-only health check from the table below right before that step, not only at the start of the run, since connectors can disconnect or expire mid-batch. If the check fails or the tools are missing, don't attempt the step. Tell the operator which connector is down and the exact error, skip only the steps that need it, and record the skipped step with the job so it can be redone once the connector is reconnected. A missing connector never blocks the rest of the batch. Never retry a write, such as a card, email or document, that may already have gone through; check first.
+
+  | Connector | Needed for | Required? | Health check (read-only) |
+  |---|---|---|---|
+  | Browser (built-in browser pane or Claude in Chrome) | Google discovery, visual qualification, public-preview checks, contact-form submission | Yes | List tabs, then load a page and read its text |
+  | Trello | Lead cards on the `settings.json` → `trello` board | Recommended | `trelloReadMember` `get_me`, then read the board and confirm the `trello.lists` exist |
+  | Gmail | Email outreach (manual-outreach jobs) and spotting replies to move Trello cards | Recommended | `list_labels` or a one-result `search_threads` |
+  | Google Drive + Google Docs | Copying and filling the proposal template ([Client release](references/client-release.md)) | Only after a lead signs | Drive `get_file_metadata` on the template and Docs `read_doc` on it |
+
+  Firecrawl, Vercel and Firebase are not connectors: they use the `.env` API key and CLI logins from SETUP.md.
 - Preflight the selected prepared template. Use `pnpm dlx vercel@59.16.0 whoami` and `teams ls` to verify the configured scope (read-only). The bare global `vercel` executable need not be installed. Only check Firecrawl credentials if scraping is actually needed; never print their values.
 
 ## Discover, qualify and allocate
@@ -67,6 +77,26 @@ If an applicable instruction or tool review does require confirmation, identify 
 Create an isolated Vercel project per job using its unique job ID. Verify the existing account and scope. Do not deploy from Delivery or touch its three existing projects. Deploy the new copy, capture the CLI's URL, and open it in a logged-out/public context. Check that it loads without Vercel login and that routes, images and calls to action work. An inaccessible preview is a blocker to outreach. No custom domains, purchases, account changes or existing-site modifications are part of this workflow.
 
 Read [outreach.md](references/outreach.md) before contacting. Copy the fixed message exactly, substituting the verified preview URL and optional subject business name. Use the business's original contact form. Save the exact message, form URL and QA evidence before submitting. Reserve `contact-begin` in the ledger immediately before the one submission. Inspect success/failure afterward; use `contact-finish` with observed evidence. Use the sender name, first name and surname from `settings.json` → `sender`. Inspection-request forms are authorized for a clearly identified website proposal. Leave CAPTCHA challenges untouched and finish qualified websites as manual outreach instead of skipping the build. After one submit action, mark the job complete using contact-finish --status submitted and record the observed result; no delivery confirmation is required. Never retry or move to email/SMS as a fallback.
+
+## Track leads in Trello
+
+The lead pipeline lives on the Trello board named in `settings.json` → `trello` (currently **ZenTek**), in the lists under `trello.lists`. The local dashboard remains the audit ledger; Trello is the operator's working view. Use the Trello connector; run its health check (see Starting a run) before each card write, and if it fails, say so and continue.
+
+- After each outreach is sent (form, Gmail, or operator-assisted), create one card in **Leads · Preview Sent** named `Business (City)`. Description: preview URL, original site, public phone/email/address, how and when it was sent with the observed result, the offer ($500 one-time + hosting costs), site ID and dashboard job ID, and the two visual findings. Set the due date to `follow_up_days` after sending at 09:00 operator local time (America/New_York) as the follow-up reminder.
+- Before creating, search the board for the business name or domain; never duplicate a card.
+- Manual-outreach businesses (not yet sent) get a card only once the operator confirms sending.
+- Move cards only on the operator's word or observed evidence (a reply in Gmail): Replied → Signed ($500) → Live (Firebase) after the client release, or Not Interested. Never contact a Not Interested business again.
+- Do not touch the board's other lists (Backlog, In Progress, Done) or unrelated cards.
+
+## Client release — Firebase Hosting
+
+Vercel is for speculative previews only (noindex). When the operator says a prospect has signed, publish that business's approved preview to Firebase Hosting; never do this during a prospecting batch or without that instruction. Follow [Client release](references/client-release.md). Summary:
+
+1. Get the site ID (`runs/quick/ID`) and the client's Firebase project ID from the operator; one Firebase project per client. Ask only for what is missing.
+2. `python3 tools/client_release.py prepare --id ID --project PROJECT_ID [--domain www.client.com]` — copies the preview to `runs/clients/ID/`, strips noindex, writes `firebase.json`/`.firebaserc`, excludes `.env*` and `.vercel`.
+3. `python3 tools/client_release.py deploy --id ID` — needs a one-time `npx firebase-tools login` on the operator's computer; if the agent's shell has no network or login, hand the operator this exact command.
+4. Verify `https://PROJECT_ID.web.app` loads logged-out, routes and call/email links work, and the page has no noindex tag.
+5. Custom domain: the operator adds it in Firebase console → Hosting → Add custom domain and sets the DNS records at the client's registrar. Record the live URL and domain with the job.
 
 ## Finish
 

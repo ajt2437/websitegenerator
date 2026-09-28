@@ -273,6 +273,23 @@ def manual_outreach(jid, worker, reason, message, email='', phone=''):
         event(c, jid, 'Manual outreach required: ' + reason.strip())
         return {'id': jid, 'stage': 'manual', 'contact_status': 'manual_required'}
 
+def record_sent(industry, city, name, url, preview_url, status, evidence):
+    """Record outreach the user sent by hand, outside the worker pipeline."""
+    if status not in ('submitted', 'sent') or not evidence.strip(): raise ValueError('Provide result and observed evidence')
+    if not preview_url.startswith('https://'): raise ValueError('Preview URL must be https')
+    d = domain(url)
+    with connect() as c:
+        row = c.execute('SELECT id FROM batches WHERE industry=? AND city=?', (industry, city)).fetchone()
+        bid = row['id'] if row else ident('batch')
+        if not row:
+            c.execute('INSERT INTO batches(id,industry,city,status,created_at,requested_count) VALUES (?,?,?,?,?,?)', (bid, industry, city, 'complete', now(), 5))
+        jid = ident('site')
+        c.execute('INSERT INTO jobs(id,batch_id,name,url,domain,stage,detail,preview_url,contact_status,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+                  (jid, bid, name, url, d, 'complete' if status == 'submitted' else 'sent', evidence, preview_url, status, now()))
+        c.execute('INSERT INTO identities VALUES (?,?)', ('domain:' + d, jid))
+        event(c, jid, f'Contact {status} manually by user: {evidence}')
+        return {'id': jid, 'batch': bid, 'status': status}
+
 def serve(port):
     static=(ROOT/'dashboard').resolve()
     class Handler(BaseHTTPRequestHandler):
@@ -354,6 +371,7 @@ def main():
     s=sub.add_parser('contact-begin'); s.add_argument('--job',required=True); s.add_argument('--worker',required=True); s.add_argument('--message-file',type=Path,required=True); s.add_argument('--form-url',required=True)
     s=sub.add_parser('contact-finish'); s.add_argument('--job',required=True); s.add_argument('--worker',required=True); s.add_argument('--status',choices=['submitted','sent','uncertain','blocked'],required=True); s.add_argument('--evidence',required=True)
     s=sub.add_parser('manual-outreach'); s.add_argument('--job',required=True); s.add_argument('--worker',required=True); s.add_argument('--reason',required=True); s.add_argument('--message-file',type=Path,required=True); s.add_argument('--email',default=''); s.add_argument('--phone',default='')
+    s=sub.add_parser('record-sent'); s.add_argument('--industry',required=True); s.add_argument('--city',required=True); s.add_argument('--name',required=True); s.add_argument('--url',required=True); s.add_argument('--preview',required=True); s.add_argument('--status',choices=['submitted','sent'],required=True); s.add_argument('--evidence',required=True)
     s=sub.add_parser('recover'); s.add_argument('--job',required=True); s.add_argument('--reason',required=True)
     s=sub.add_parser('batch-status'); s.add_argument('--batch',required=True); s.add_argument('--status',choices=['running','complete','blocked','exhausted'],required=True)
     s=sub.add_parser('cancel-batch'); s.add_argument('--batch',required=True); s.add_argument('--reason',required=True)
@@ -369,6 +387,7 @@ def main():
         elif a.cmd=='contact-begin': result=contact_begin(a.job,a.worker,a.message_file.read_text(encoding='utf-8'),a.form_url)
         elif a.cmd=='contact-finish': result=contact_finish(a.job,a.worker,a.status,a.evidence)
         elif a.cmd=='manual-outreach': result=manual_outreach(a.job,a.worker,a.reason,a.message_file.read_text(encoding='utf-8'),a.email,a.phone)
+        elif a.cmd=='record-sent': result=record_sent(a.industry,a.city,a.name,a.url,a.preview,a.status,a.evidence)
         elif a.cmd=='capacity':
             with connect() as c: c.execute("UPDATE config SET value=? WHERE key='max_workers'",(str(a.count),))
             result={'max_workers':a.count}

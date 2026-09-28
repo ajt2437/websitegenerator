@@ -49,7 +49,7 @@ pnpm dlx vercel@59.16.0 deploy --prod --yes --scope zentekdigitalbusiness-1384
 
 `--prod` is acceptable for this isolated concept project so the recipient receives a public URL; it must never refer to the business's real site or Delivery's existing platform/agency/client projects. Verify `.vercel/project.json` refers to the intended new project before deploying. The quick generator already outputs a complete static site. Deploy that `site/` directory with no install or build command. Its `vercel.json` provides the SPA fallback and noindex headers. Verify that `.vercel/project.json` belongs to the intended new isolated project before any subsequent deploy. Never run npm in the generated site or use the legacy per-business prerender workflow.
 
-Capture and verify the returned URL. Open the homepage and a service route without session bypass cookies. If deployment protection blocks recipients, flag it; do not change account-wide protection settings. Do not send an inaccessible URL. Only ready/verified sites proceed to outreach. Hosting pricing is not known from a successful deploy; never promise a particular price, free hosting or automatic ownership transfer.
+Capture and verify the returned URL. Open the homepage and a service route without session bypass cookies. If deployment protection blocks recipients, flag it; do not change account-wide protection settings. Do not send an inaccessible URL. Only ready/verified sites proceed to outreach. Hosting pricing is not known from a successful deploy; never promise a hosting price, free hosting or automatic ownership transfer; the only price stated to prospects is the $500 website fee from the fixed outreach message.
 
 ## Continue through outreach
 
