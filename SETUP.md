@@ -37,11 +37,26 @@ Ask Claude something like: *"Using the websitegenerator repo, find 5 electrician
 
 ## Client sites on Firebase Hosting
 
-Previews stay on Vercel (noindex). When a client signs, publish their site to Firebase:
+Previews stay on Vercel (noindex). Paying clients go to Firebase: one shared project, one Hosting site + custom domain per client.
 
-1. Create a Firebase project for the client at https://console.firebase.google.com (one project per client makes handover easy). Note its project ID.
-2. `npx firebase-tools login` (once per computer).
-3. `py -3 tools\client_release.py prepare --id <site-id> --project <firebase-project-id> --domain www.clientdomain.com`
-   Copies the preview to `runs\clients\<site-id>\`, removes the noindex tags and writes `firebase.json`.
-4. `py -3 tools\client_release.py deploy --id <site-id>` → live at `https://<project-id>.web.app`.
-5. In Firebase console → Hosting → Add custom domain, then add the DNS records it shows at the client's domain registrar.
+One-time:
+1. https://console.firebase.google.com → Create project (e.g. `zentek-sites`; Analytics off). Put its project ID in `settings.json` → `firebase.project_id`.
+2. In that project: Build → Hosting → Get started (click through).
+3. `npx firebase-tools login`, then check with `npx firebase-tools projects:list`.
+
+Per client:
+1. `py -3 tools\client_release.py create-site --site quantum-electric`
+2. `py -3 tools\client_release.py prepare --id <site-id> --site quantum-electric --domain www.clientdomain.com`
+3. `py -3 tools\client_release.py deploy --id <site-id>` → live at `https://quantum-electric.web.app`
+4. `py -3 tools\client_release.py domain --site quantum-electric --domain clientdomain.com --domain www.clientdomain.com` → prints the DNS records to add at the client's registrar (on the agreed switch-over date). Check progress with `domain-status`. Needs the Google Cloud CLI once: install from https://cloud.google.com/sdk/docs/install, then `gcloud auth login`.
+
+### Google Cloud CLI (one-time, for custom domains)
+
+`tools\client_release.py domain` uses the Firebase Hosting API through the Google Cloud CLI.
+
+1. Install the Google Cloud CLI for Windows: https://cloud.google.com/sdk/docs/install
+2. Run `gcloud init`, sign in as the Firebase account (zentekdigitalbusiness@gmail.com) and pick project `zentek-sites`.
+   - A "Compute Engine API has not been used ... or it is disabled" error at the end is harmless: gcloud tries to set a default compute zone. Don't enable Compute Engine; it isn't needed and may require billing.
+   - Optional, to silence it: `gcloud config unset compute/region` and `gcloud config unset compute/zone`.
+3. Check: `gcloud auth print-access-token` prints a long token starting with `ya29.` (don't share it).
+4. Keep the Firebase APIs (including Firebase Hosting API) enabled. Verify at https://console.cloud.google.com/apis/dashboard?project=zentek-sites — Compute Engine API should not be listed.
