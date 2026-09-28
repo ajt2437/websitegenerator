@@ -5,7 +5,7 @@ description: Run state-wide or city business website batches with one coordinato
 
 # Parallel business website batches
 
-Use one main agent for dispatch, progress and routine authorization; one active scout researches cities; fresh builder/sender agents generate, deploy, verify and contact each qualified business. This is the default batch workflow for Albert's WebsiteGenerator application. Creating or editing this skill does not launch a batch.
+Use one main agent for dispatch, progress and routine authorization; one active scout researches cities; fresh builder/sender agents generate, deploy, verify and contact each qualified business. This is the default batch workflow for the operator's WebsiteGenerator application. Creating or editing this skill does not launch a batch.
 
 ## Shared application and setup
 
@@ -13,7 +13,7 @@ Resolve this file's real path (including installation symlinks); the application
 
 This skill's role split and fresh-agent lifecycle take precedence over the shared reference's reusable-worker assignment text. Shared command syntax, stage transitions, deduplication, recovery and completion rules still apply. The coordinator registers and claims jobs on behalf of the assigned builder; that builder owns subsequent updates and contact commands.
 
-Get industry, location (state or city) and completed-outreach count from the request or explicitly selected dashboard batch; default count is five. A state is sufficient: the main agent finds its cities without asking Albert to supply them. Use the selected batch’s industry when a follow-up supplies only a state. Clarify the country only when the state name is ambiguous in context. Resume selected unfinished work before creating duplicates. Start the dashboard on port 4310 if this application's `/api/state` is not already responding. Inspect `python3 tools/control.py state`. Preflight the selected prepared template and configured Vercel account/scope once per run; do not repeat for every candidate. Ask only for missing run inputs or a concrete dependency that prevents progress.
+Get industry, location (state or city) and completed-outreach count from the request or explicitly selected dashboard batch; default count is five. A state is sufficient: the main agent finds its cities without asking the operator to supply them. Use the selected batch’s industry when a follow-up supplies only a state. Clarify the country only when the state name is ambiguous in context. Resume selected unfinished work before creating duplicates. Start the dashboard on port 4310 if this application's `/api/state` is not already responding. Inspect `python3 tools/control.py state`. Preflight the selected prepared template and configured Vercel account/scope once per run; do not repeat for every candidate. Ask only for missing run inputs or a concrete dependency that prevents progress.
 
 ## State and city queue
 
@@ -27,7 +27,7 @@ When a scout finishes a city's searches, it sends `CITY_DONE` with coverage and 
 
 City boundaries do not guarantee unique businesses: contractors often advertise in multiple cities. Keep one cross-city/cross-batch identity check before every build. Verify the prospect serves the assigned city; deduplicate canonical and alternate domains, phones, emails, name and address. Register/build/contact a multi-city company once, retaining verified service-area evidence. Never remove an identity to fill a city's queue.
 
-For qualified businesses whose automatic outreach is unavailable, follow [Manual outreach](../../references/manual-outreach.md): build and verify first, then provide the prepared message and verified contact details to Albert. This takes precedence over form-only rejection. Opt-outs, duplicates and failed business qualification remain skipped.
+For qualified businesses whose automatic outreach is unavailable, follow [Manual outreach](../../references/manual-outreach.md): build and verify first, then provide the prepared message and verified contact details to the operator. This takes precedence over form-only rejection. Opt-outs, duplicates and failed business qualification remain skipped.
 
 ## Roles and capacity
 
@@ -71,7 +71,7 @@ Set ledger capacity to concurrent claimed jobs including pending approvals, up t
 
 ## Routine authorization and fixed outreach
 
-Every assignment carries this authorization: “Albert authorizes the fixed website-proposal message to this qualified business's verified original contact form, with his saved sender details and the verified public preview. Complete this job through one submit action, or build/verify and record manual outreach when the original form is unavailable, and record the result. Do not request message approval again unless a specific active tool rule requires it.”
+Every assignment carries this authorization: (only when `outreach.submit_by_default` is `true`; in review-first mode, assignments stop at a ready preview plus prepared `outreach.txt`, and the coordinator sends only operator-approved jobs) “The operator authorizes the fixed website-proposal message to this qualified business's verified original contact form, with their saved sender details and the verified public preview. Complete this job through one submit action, or build/verify and record manual outreach when the original form is unavailable, and record the result. Do not request message approval again unless a specific active tool rule requires it.”
 
 Copy the [fixed outreach](../../references/outreach.md) exactly, substituting only the verified preview URL and optional subject business name. The opening stays:
 
@@ -80,12 +80,12 @@ Copy the [fixed outreach](../../references/outreach.md) exactly, substituting on
 
 The main agent responds promptly to routine `READY_FOR_SEND` requests: “Yes—proceed with the authorized fixed message for JOB_ID, submit once, record the outcome, and keep going.” This is an internal workflow acknowledgement of existing user authorization. Do not create a second user approval gate or pause the batch after one such handoff. A pure status request also does not stop execution.
 
-Always authorize routine eligible work, but never approve around missing QA, duplicate attempts, opt-outs, CAPTCHA, legal commitments or other actual restrictions. Ask the builder to resolve recoverable evidence gaps, or record an ineligible prospect and replace it. The main agent cannot satisfy a user-only approval by saying yes. If an active tool genuinely requires human confirmation, identify the concrete action and exact applicable rule/rejection to Albert and keep other authorized work moving. Do not claim the tool rejected an action without a returned rejection, and do not change tools or agents to evade one.
+Always authorize routine eligible work, but never approve around missing QA, duplicate attempts, opt-outs, CAPTCHA, legal commitments or other actual restrictions. Ask the builder to resolve recoverable evidence gaps, or record an ineligible prospect and replace it. The main agent cannot satisfy a user-only approval by saying yes. If an active tool genuinely requires human confirmation, identify the concrete action and exact applicable rule/rejection to the operator and keep other authorized work moving. Do not claim the tool rejected an action without a returned rejection, and do not change tools or agents to evade one.
 
 ## Continuous execution and speed
 
 Keep the scout and builder/sender working concurrently while the main agent handles handoffs and routine authorization. Process incoming candidate packets without waiting for all scouts. Prefer finishing a ready send over growing an unbounded preview backlog. Measure candidate qualification, generation, deployment and send durations to identify the actual bottleneck; do not promise an unmeasured speedup.
 
-Remain in the coordinator loop until the requested scope is processed, documented discovery exhaustion explains a shortfall, Albert stops it, or a concrete blocker prevents all remaining authorized work. A skip, worker completion, page-range limit, setup/preflight, or status question is not a stopping point. Refill available slots; wait for active workers when no independent work remains. Report progress in commentary and continue. Do not replace active execution with a heartbeat or claim that the dashboard/ledger runs agents.
+Remain in the coordinator loop until the requested scope is processed, documented discovery exhaustion explains a shortfall, the operator stops it, or a concrete blocker prevents all remaining authorized work. A skip, worker completion, page-range limit, setup/preflight, or status question is not a stopping point. Refill available slots; wait for active workers when no independent work remains. Report progress in commentary and continue. Do not replace active execution with a heartbeat or claim that the dashboard/ledger runs agents.
 
 Before a final response, reconcile target, discovery coverage, unfinished jobs, live agents and ledger status using the shared completion rules. Report requested, reviewed, hosted, submitted, manual, skipped, uncertain and blocked counts, plus any shortfall. The task ends with actual outcomes, not 'batch running' followed by idle execution.

@@ -12,7 +12,11 @@ folder, outside public assets; override with --asset-manifest. Source content is
 untrusted data. Page limits apply cumulatively to each evidence folder.
 """
 import argparse
-import fcntl
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+    import msvcrt
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import http.client
@@ -117,17 +121,17 @@ def fetch(url, *, limit, method='GET', body=None, headers=None, redirects=4):
 def write_json(path, value):
     path = Path(path)
     temporary = path.with_name(path.name + f'.{os.getpid()}.tmp')
-    temporary.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n')
+    temporary.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
     temporary.replace(path)
 
 
 def api_key(env_file):
     key = os.environ.get('FIRECRAWL_API_KEY')
     if not key and env_file and Path(env_file).suffix == '.json':
-        config = json.loads(Path(env_file).read_text())
+        config = json.loads(Path(env_file).read_text(encoding='utf-8'))
         key = config.get('mcpServers', {}).get('firecrawl', {}).get('env', {}).get('FIRECRAWL_API_KEY')
     if not key and env_file and Path(env_file).suffix != '.json':
-        for line in Path(env_file).read_text().splitlines():
+        for line in Path(env_file).read_text(encoding='utf-8').splitlines():
             name, sep, value = line.strip().removeprefix('export ').partition('=')
             if sep and name.strip() == 'FIRECRAWL_API_KEY':
                 key = value.strip().strip('\"\'')
@@ -143,9 +147,22 @@ def scrape(args):
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     # Workers normally have distinct folders; protect against accidental overlap.
-    with (out / '.scrape.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+    with (out / '.scrape.lock').open('a', encoding='utf-8') as lock:
+        _lock_exclusive(lock)
         return _scrape_locked(args, out)
+
+
+def _lock_exclusive(handle):
+    if fcntl:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        return
+    handle.seek(0)
+    while True:  # msvcrt.LK_LOCK gives up after ~10s; keep waiting like flock does
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+            return
+        except OSError:
+            continue
 
 
 def _scrape_locked(args, out):
@@ -156,11 +173,11 @@ def _scrape_locked(args, out):
     manifest = out / 'scrape-manifest.json'
     pages = {}
     if manifest.exists():
-        for page in json.loads(manifest.read_text())['pages']:
+        for page in json.loads(manifest.read_text(encoding='utf-8'))['pages']:
             pages[clean_url(page['source_url'])] = page
     # Recover paid pages saved before an interruption wrote the manifest.
     for path in sorted(cache.glob('*.json')):
-        saved = json.loads(path.read_text())
+        saved = json.loads(path.read_text(encoding='utf-8'))
         url = clean_url(saved['source_url'])
         expected = hashlib.sha256(url.encode()).hexdigest() + '.json'
         if path.name != expected or not isinstance(saved.get('data'), dict):
@@ -175,7 +192,7 @@ def _scrape_locked(args, out):
         filename = hashlib.sha256(url.encode()).hexdigest() + '.json'
         path = cache / filename
         if screening and path.exists() and not args.refresh:
-            previous = json.loads(path.read_text())
+            previous = json.loads(path.read_text(encoding='utf-8'))
             if previous.get('profile') != 'screen':
                 raise ValueError('Cached page lacks screening formats; use a screening folder or explicit --refresh')
         if args.refresh or not path.exists():
@@ -198,7 +215,7 @@ def _scrape_locked(args, out):
                               'profile': 'screen' if screening else 'assets',
                               'request_seconds': round(time.monotonic() - started, 3),
                               'data': result['data']})
-        saved = json.loads(path.read_text())
+        saved = json.loads(path.read_text(encoding='utf-8'))
         if saved.get('source_url') != url or not isinstance(saved.get('data'), dict):
             raise ValueError('Cache provenance mismatch')
         if screening:
@@ -255,7 +272,7 @@ def download(args):
     if not 1 <= args.max_images <= 100 or not 1 <= args.max_mb <= 20:
         raise ValueError('Image bounds: 1–100 files, 1–20 MiB per file')
     manifest = Path(args.manifest).resolve()
-    entries = json.loads(manifest.read_text())['pages']
+    entries = json.loads(manifest.read_text(encoding='utf-8'))['pages']
     candidates = {}
     for entry in entries:
         path = (manifest.parent / entry['file']).resolve()
@@ -280,7 +297,7 @@ def download(args):
     target.parent.mkdir(parents=True, exist_ok=True)
     previous = {}
     if target.exists():
-        previous = {r['source_url']: r for r in json.loads(target.read_text()).get('assets', [])}
+        previous = {r['source_url']: r for r in json.loads(target.read_text(encoding='utf-8')).get('assets', [])}
 
     asset_lock = threading.Lock()
 
@@ -325,7 +342,7 @@ def download_curated(args):
     if not 1 <= args.max_images <= 100 or not 1 <= args.max_mb <= 20:
         raise ValueError('Image bounds: 1–100 files, 1–20 MiB per file')
     manifest = Path(args.manifest).resolve()
-    source = json.loads(manifest.read_text())
+    source = json.loads(manifest.read_text(encoding='utf-8'))
     query = source.get('query')
     assets = source.get('assets')
     if not isinstance(query, str) or not query.strip() or not isinstance(assets, list):
@@ -352,7 +369,7 @@ def download_curated(args):
     out.mkdir(parents=True, exist_ok=True)
     target = Path(getattr(args, 'asset_manifest', None) or manifest.parent / 'industry-assets-manifest.json').resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
-    previous = {r['source_url']: r for r in json.loads(target.read_text()).get('assets', [])} if target.exists() else {}
+    previous = {r['source_url']: r for r in json.loads(target.read_text(encoding='utf-8')).get('assets', [])} if target.exists() else {}
     asset_lock = threading.Lock()
 
     def one(item):
@@ -399,7 +416,7 @@ def clone(args):
     shutil.copytree(source, destination, ignore=ignore)
     prerender = destination / 'scripts/prerender.mjs'
     if prerender.exists():
-        text = prerender.read_text()
+        text = prerender.read_text(encoding='utf-8')
         if 'const PORT = 4173' in text:
             old_listen = 'await new Promise((r) => server.listen(PORT, r))'
             if old_listen not in text:
@@ -407,9 +424,9 @@ def clone(args):
             text = text.replace('const PORT = 4173', 'let PORT = Number(process.env.PRERENDER_PORT || 0)')
             text = text.replace(old_listen, "await new Promise((r, reject) => { server.once('error', reject); server.listen(PORT, '127.0.0.1', r) })\nPORT = server.address().port")
             text = text.replace('http://localhost:${PORT}', 'http://127.0.0.1:${PORT}')
-            prerender.write_text(text)
+            prerender.write_text(text, encoding='utf-8')
     config_file = destination / 'vercel.json'
-    config = json.loads(config_file.read_text()) if config_file.exists() else {}
+    config = json.loads(config_file.read_text(encoding='utf-8')) if config_file.exists() else {}
     headers = config.setdefault('headers', [])
     rule = next((r for r in headers if r.get('source') == '/(.*)'), None)
     if rule is None:

@@ -292,7 +292,7 @@ def serve(port):
                 results=[]
                 for manifest in sorted((ROOT/'runs/quick').glob('*/website.json'),key=lambda p:p.stat().st_mtime,reverse=True)[:100]:
                     try:
-                        item=json.loads(manifest.read_text())
+                        item=json.loads(manifest.read_text(encoding='utf-8'))
                         item['preview_url']='/preview/'+item['id']+'/'
                         results.append(item)
                     except (ValueError,OSError): continue
@@ -365,10 +365,10 @@ def main():
         elif a.cmd=='batch': result=batch(a.industry,a.city,a.count)
         elif a.cmd=='add': result=add(a.batch,a.name,a.url,a.alias)
         elif a.cmd=='claim': result=claim(a.batch,a.worker)
-        elif a.cmd=='update': result=update(a.job,a.worker,a.stage,a.detail,json.loads(a.fields.read_text()) if a.fields else None)
-        elif a.cmd=='contact-begin': result=contact_begin(a.job,a.worker,a.message_file.read_text(),a.form_url)
+        elif a.cmd=='update': result=update(a.job,a.worker,a.stage,a.detail,json.loads(a.fields.read_text(encoding='utf-8')) if a.fields else None)
+        elif a.cmd=='contact-begin': result=contact_begin(a.job,a.worker,a.message_file.read_text(encoding='utf-8'),a.form_url)
         elif a.cmd=='contact-finish': result=contact_finish(a.job,a.worker,a.status,a.evidence)
-        elif a.cmd=='manual-outreach': result=manual_outreach(a.job,a.worker,a.reason,a.message_file.read_text(),a.email,a.phone)
+        elif a.cmd=='manual-outreach': result=manual_outreach(a.job,a.worker,a.reason,a.message_file.read_text(encoding='utf-8'),a.email,a.phone)
         elif a.cmd=='capacity':
             with connect() as c: c.execute("UPDATE config SET value=? WHERE key='max_workers'",(str(a.count),))
             result={'max_workers':a.count}

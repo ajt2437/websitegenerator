@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import html
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -13,6 +14,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
+NPM = 'npm.cmd' if os.name == 'nt' else 'npm'
 TEMPLATES = {'electrician': {'name': 'Electrician · base design', 'path': ROOT / 'templates/electrician'}}
 
 
@@ -22,17 +24,18 @@ def fingerprint(template):
         if not p.is_file() or any(x in p.relative_to(template).parts for x in ('node_modules', 'dist', '.vercel')):
             continue
         digest.update(str(p.relative_to(template)).encode())
-        digest.update(p.read_bytes())
+        # Normalise line endings so a Windows (CRLF) checkout matches the prepared build.
+        digest.update(p.read_bytes().replace(b'\r\n', b'\n'))
     return digest.hexdigest()
 
 
 def prepare(template='electrician'):
     source = TEMPLATES[template]['path']
     if not (source / 'node_modules').exists():
-        subprocess.run(['npm', 'ci', '--no-audit', '--no-fund'], cwd=source, check=True)
-    subprocess.run(['npm', 'run', 'lint'], cwd=source, check=True)
-    subprocess.run(['npm', 'run', 'build'], cwd=source, check=True)
-    (source / 'dist/.prepared.json').write_text(json.dumps({'fingerprint': fingerprint(source)}))
+        subprocess.run([NPM, 'ci', '--no-audit', '--no-fund'], cwd=source, check=True)
+    subprocess.run([NPM, 'run', 'lint'], cwd=source, check=True)
+    subprocess.run([NPM, 'run', 'build'], cwd=source, check=True)
+    (source / 'dist/.prepared.json').write_text(json.dumps({'fingerprint': fingerprint(source)}), encoding='utf-8')
 
 
 def validate(data):
@@ -67,7 +70,7 @@ def create(data, output_root=None):
     source = TEMPLATES[template]['path']
     cache = source / 'dist'
     stamp = cache / '.prepared.json'
-    if not stamp.exists() or json.loads(stamp.read_text())['fingerprint'] != fingerprint(source):
+    if not stamp.exists() or json.loads(stamp.read_text(encoding='utf-8'))['fingerprint'] != fingerprint(source):
         raise ValueError('Template needs preparation. Run: python3 tools/quick_site.py prepare')
     parent = Path(output_root) if output_root else ROOT / 'runs/quick'
     parent.mkdir(parents=True, exist_ok=True)
@@ -79,14 +82,14 @@ def create(data, output_root=None):
         site = staging / 'site'
         shutil.copytree(cache, site, ignore=shutil.ignore_patterns('.prepared.json'))
         # Data lives in its own JavaScript file. JSON escaping prevents source injection.
-        (site / 'business.js').write_text('window.WEBSITE_BUSINESS = ' + json.dumps(business, ensure_ascii=True) + ';\n')
-        page = (site / 'index.html').read_text().replace('Your Company', html.escape(business['name'], quote=True))
+        (site / 'business.js').write_text('window.WEBSITE_BUSINESS = ' + json.dumps(business, ensure_ascii=True) + ';\n', encoding='utf-8')
+        page = (site / 'index.html').read_text(encoding='utf-8').replace('Your Company', html.escape(business['name'], quote=True))
         page = page.replace('in your area', 'for your home').replace('in your local area', 'for your home')
-        (site / 'index.html').write_text(page)
+        (site / 'index.html').write_text(page, encoding='utf-8')
         shutil.copyfile(source / 'vercel.json', site / 'vercel.json')
         shutil.copyfile(source / 'stock-images.json', staging / 'stock-images.json')
         result = {'id': identifier, 'template': template, 'business': business, 'site': str(destination / 'site'), 'seconds': round(time.perf_counter()-started, 3)}
-        (staging / 'website.json').write_text(json.dumps(result, indent=2))
+        (staging / 'website.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
         staging.rename(destination)
         return result
     except Exception:
@@ -115,7 +118,7 @@ def main():
         elif command == 'templates': print(json.dumps({k: v['name'] for k, v in TEMPLATES.items()}, indent=2))
         elif command == 'create': print(json.dumps(create(args), indent=2))
         else:
-            records = json.loads(args['file'].read_text())
+            records = json.loads(args['file'].read_text(encoding='utf-8'))
             if not isinstance(records, list): raise ValueError('Batch file must contain a JSON array')
             for record in records: validate(record)
             print(json.dumps([create(record) for record in records], indent=2))

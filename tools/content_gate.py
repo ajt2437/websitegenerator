@@ -10,7 +10,7 @@ SKIP_PARTS = {'node_modules', 'dist', '.git', '.vercel'}
 def terms(args):
     values = list(args.forbid)
     if args.forbid_file:
-        values.extend(line.strip() for line in args.forbid_file.read_text().splitlines())
+        values.extend(line.strip() for line in args.forbid_file.read_text(encoding='utf-8').splitlines())
     return [value.casefold() for value in values if value.strip()]
 
 def main():
