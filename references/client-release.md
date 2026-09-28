@@ -4,7 +4,7 @@ Previews live on Vercel with `noindex` and exist only to show a prospect. A clie
 
 ## Layout: one project, one site per client
 
-All client sites share one Firebase project (`settings.json` → `firebase.project_id`, e.g. `zentek-sites`). Each client gets its own Hosting site (`SITE.web.app`) and its own custom domain. Reasons: the free Spark plan limits a Google account to roughly 5–10 projects, while one project holds roughly 36 sites; one login and dashboard; matches the proposal's "website will be under ZenTek account for hosting". If a client later leaves and wants to own hosting, create a project for them, deploy there, and move their domain.
+All client sites share one Firebase project (`settings.json` → `firebase.project_id`, e.g. `my-client-sites`). Each client gets its own Hosting site (`SITE.web.app`) and its own custom domain. Reasons: the free Spark plan limits a Google account to roughly 5–10 projects, while one project holds roughly 36 sites; one login and dashboard; matches the proposal's "website will be under ZenTek account for hosting". If a client later leaves and wants to own hosting, create a project for them, deploy there, and move their domain.
 
 ## Inputs
 

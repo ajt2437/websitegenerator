@@ -38,13 +38,13 @@ The approximately 30-second goal covers applying the collected details and creat
 
 ## Vercel
 
-Read-only preflight confirmed configuration should use the existing CLI wrapper (`pnpm dlx vercel@59.16.0`) and scope `zentekdigitalbusiness-1384`; recheck availability at runtime. Exact CLI behavior: [deploy](https://vercel.com/docs/cli/deploy), [global options](https://vercel.com/docs/cli/global-options). Firecrawl uses [v2 scrape](https://docs.firecrawl.dev/api-reference/endpoint/scrape).
+Read-only preflight confirmed configuration should use the existing CLI wrapper (`pnpm dlx vercel@59.16.0`) and the scope in `settings.json` → `vercel_scope`; recheck availability at runtime. Exact CLI behavior: [deploy](https://vercel.com/docs/cli/deploy), [global options](https://vercel.com/docs/cli/global-options). Firecrawl uses [v2 scrape](https://docs.firecrawl.dev/api-reference/endpoint/scrape).
 
 Create a new project named `revamp-JOB_ID` from the exact `site` path returned by the generator (normally `runs/quick/GENERATED_ID/site`), with no copied `.vercel` folder or env variables. Link explicitly to that project and the configured scope using CLI help for installed syntax. For example, from the copy:
 
 ```sh
-pnpm dlx vercel@59.16.0 link --yes --project revamp-JOB_ID --scope zentekdigitalbusiness-1384
-pnpm dlx vercel@59.16.0 deploy --prod --yes --scope zentekdigitalbusiness-1384
+pnpm dlx vercel@59.16.0 link --yes --project revamp-JOB_ID --scope VERCEL_SCOPE
+pnpm dlx vercel@59.16.0 deploy --prod --yes --scope VERCEL_SCOPE
 ```
 
 `--prod` is acceptable for this isolated concept project so the recipient receives a public URL; it must never refer to the business's real site or Delivery's existing platform/agency/client projects. Verify `.vercel/project.json` refers to the intended new project before deploying. The quick generator already outputs a complete static site. Deploy that `site/` directory with no install or build command. Its `vercel.json` provides the SPA fallback and noindex headers. Verify that `.vercel/project.json` belongs to the intended new isolated project before any subsequent deploy. Never run npm in the generated site or use the legacy per-business prerender workflow.

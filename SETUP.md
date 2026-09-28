@@ -40,7 +40,7 @@ Ask Claude something like: *"Using the websitegenerator repo, find 5 electrician
 Previews stay on Vercel (noindex). Paying clients go to Firebase: one shared project, one Hosting site + custom domain per client.
 
 One-time:
-1. https://console.firebase.google.com → Create project (e.g. `zentek-sites`; Analytics off). Put its project ID in `settings.json` → `firebase.project_id`.
+1. https://console.firebase.google.com → Create project (Analytics off). Put its project ID in `settings.json` → `firebase.project_id`.
 2. In that project: Build → Hosting → Get started (click through).
 3. `npx firebase-tools login`, then check with `npx firebase-tools projects:list`.
 
@@ -55,8 +55,8 @@ Per client:
 `tools\client_release.py domain` uses the Firebase Hosting API through the Google Cloud CLI.
 
 1. Install the Google Cloud CLI for Windows: https://cloud.google.com/sdk/docs/install
-2. Run `gcloud init`, sign in as the Firebase account (zentekdigitalbusiness@gmail.com) and pick project `zentek-sites`.
+2. Run `gcloud init`, sign in with the Google account that owns your Firebase project and pick that project (`firebase.project_id` in `settings.json`).
    - A "Compute Engine API has not been used ... or it is disabled" error at the end is harmless: gcloud tries to set a default compute zone. Don't enable Compute Engine; it isn't needed and may require billing.
    - Optional, to silence it: `gcloud config unset compute/region` and `gcloud config unset compute/zone`.
 3. Check: `gcloud auth print-access-token` prints a long token starting with `ya29.` (don't share it).
-4. Keep the Firebase APIs (including Firebase Hosting API) enabled. Verify at https://console.cloud.google.com/apis/dashboard?project=zentek-sites — Compute Engine API should not be listed.
+4. Keep the Firebase APIs (including Firebase Hosting API) enabled. Verify at https://console.cloud.google.com/apis/dashboard (select your Firebase project) — Compute Engine API should not be listed.
