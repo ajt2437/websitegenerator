@@ -49,6 +49,19 @@ pnpm dlx vercel@59.16.0 deploy --prod --yes --scope VERCEL_SCOPE
 
 `--prod` is acceptable for this isolated concept project so the recipient receives a public URL; it must never refer to the business's real site or Delivery's existing platform/agency/client projects. Verify `.vercel/project.json` refers to the intended new project before deploying. The quick generator already outputs a complete static site. Deploy that `site/` directory with no install or build command. Its `vercel.json` provides the SPA fallback and noindex headers. Verify that `.vercel/project.json` belongs to the intended new isolated project before any subsequent deploy. Never run npm in the generated site or use the legacy per-business prerender workflow.
 
+### Preview only: enable Web Analytics, then redeploy (required before outreach)
+
+This applies to the Vercel preview only. Client sites on Firebase never get this script: `tools/client_release.py` strips it during [client release](client-release.md).
+
+Every preview carries `<script defer src="/_vercel/insights/script.js">` so we can see whether the prospect opened the link. Vercel only serves that script on deployments made **after** Web Analytics is enabled for the project, so the first deploy never counts page views. For each new `revamp-JOB_ID` project:
+
+1. Deploy once (above) so the project exists.
+2. In the Vercel dashboard open `https://vercel.com/VERCEL_SCOPE/revamp-JOB_ID/analytics` and click **Enable** (Web Analytics, free tier). This is a per-project setting only; do not change team/account settings.
+3. Redeploy the preview: Deployments → latest deployment → ⋯ → **Redeploy** → **Redeploy** (or `pnpm dlx vercel@59.16.0 deploy --prod --yes --scope VERCEL_SCOPE` again from the same `site/`). On the Hobby plan builds run one at a time, about 3–4 minutes each, so batches queue.
+4. Wait for the new deployment to be **Ready**, then open the public preview URL in a browser and check DevTools → Network (or `performance.getEntriesByType('resource')`): `/_vercel/insights/script.js` must return JavaScript and `/_vercel/insights/view` must return 200. A bare 200 on `script.js` is not enough: the SPA fallback in `vercel.json` returns `index.html` with status 200 for any missing path, so confirm the response is JS (not HTML) and that the `view` beacon fired.
+
+Do not set `preview_verified:true` or move the job to `ready` until step 4 passes. Your own verification visit appears in Analytics as one page view; note it so it is not mistaken for the prospect.
+
 Capture and verify the returned URL. Open the homepage and a service route without session bypass cookies. If deployment protection blocks recipients, flag it; do not change account-wide protection settings. Do not send an inaccessible URL. Only ready/verified sites proceed to outreach. Hosting pricing is not known from a successful deploy; never promise a hosting price, free hosting or automatic ownership transfer; the only price stated to prospects is the $500 website fee from the fixed outreach message.
 
 ## Continue through outreach

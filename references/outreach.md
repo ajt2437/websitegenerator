@@ -1,26 +1,40 @@
 # Friendly outreach and a single submit attempt
 
-**Review-first mode (current setting: `outreach.submit_by_default` is `false`).** Build, deploy and verify each preview and prepare its exact message in `runs/JOB_ID/outreach.txt`, but do not submit any contact form until the operator has reviewed and approved that specific job's message and destination in the current conversation. Present ready jobs together for approval (business, preview URL, form URL, final message), then send only the approved ones. If `submit_by_default` is later set to `true`, the operator's request for a real batch counts as standing consent to send the fixed message below. The message is the fixed English text below, substituting only the verified preview URL, the business name in the optional subject, and the operator's sender details from `settings.json` → `sender`. Complete the full workflow and record the result. A later dry-run/review-only instruction or withdrawal of consent overrides this authorization. Include the verified preview link in the first message. Use the same English wording every time; keep the operator's name, phone and email (from `settings.json` → `sender`) exact. Translate only if the operator explicitly requests it. Don't mimic a customer requesting service.
+**Review-first mode (current setting: `outreach.submit_by_default` is `false`).** Build, deploy and verify each preview and prepare its exact message in `runs/JOB_ID/outreach.txt`, but do not submit any contact form until the operator has reviewed and approved that specific job's message and destination in the current conversation. Present ready jobs together for approval (business, preview URL, form URL, final message), then send only the approved ones. If `submit_by_default` is later set to `true`, the operator's request for a real batch counts as standing consent to send the fixed message below. The message is the fixed English text below, substituting only the placeholders listed under Default message from `settings.json` → `sender`. Complete the full workflow and record the result. A later dry-run/review-only instruction or withdrawal of consent overrides this authorization. Include the verified preview link in the first message. Use the same English wording every time; keep the operator's name, phone and email (from `settings.json` → `sender`) exact. Translate only if the operator explicitly requests it. Don't mimic a customer requesting service.
 
 ## Default message
 
-Subject if requested: `I made a website preview for [Business]`
+Source: Google Drive `cold calling script/Landing-Page-Cold-Email.docx`, Cold Email Version 1, kept word for word. The only changes are the filled placeholders and the one added preview-link sentence.
 
-> Hey!
+Subject: `Your landing page is leaving conversions on the table`
+
+> Hi [First Name],
 >
-> Your website is decent, but looks a little old.
-> I made an updated one.
+> We came across [Company] through a local search. The product looks solid—but we noticed your landing page looks dated, slow, or doesn't clearly sell what makes you different.
 >
-> You can take a look here: [verified preview URL]
+> Most early-stage teams deprioritize the landing page. Meanwhile, it's the first impression for new and returning customers. A few hours of focused design and development usually turns a template-looking page into one that actually converts—and takes almost no engineering bandwidth.
 >
-> It's yours for a one-time $500, plus hosting costs.
+> One recent example: ZenTEK rebuilt a landing page for a startup, went from generic template to custom and cohesive, and their conversion rate went from 2% to 5% on the same traffic.
 >
-> If you'd like help setting it up, text me on <SENDER_PHONE> or email <SENDER_EMAIL>.
+> We also put together a preview of an updated site: [verified preview URL]
+>
+> Worth 15 minutes to walk through what we'd change on [Company]'s page? It's a quick conversation; you walk away with concrete ideas either way.
+>
+> <CONTACT_LINE>
 >
 > Best,
-> <SENDER_FIRST_NAME>
+>
+> <SENDER_NAME>
+>
+> ZenTEK
+>
+> <SENDER_CONTACT> | <SENDER_WEBSITE>
 
-Replace `<SENDER_PHONE>`, `<SENDER_EMAIL>` and `<SENDER_FIRST_NAME>` with `settings.json` → `sender` values; never send a message that still contains a placeholder. Copy this message exactly, changing only the verified preview URL and the business name in the optional subject. Do not add an observed issue, 'I checked your website', SEO claims, custom praise, or a rewritten opening. Visual qualification findings remain internal evidence; 'looks a little old' describes visual appearance, not the site's actual age. Keep the offer ($500 one-time for the website, plus hosting at cost) and sender details above. Do not name a hosting amount in the first message; the operator quotes it when the business replies. Do not spin messages or send follow-ups to hit a quota.
+Fill only these: `[First Name]` = the owner/contact's first name when publicly verified, otherwise `there` (so it reads "Hi there,"); `[Company]` = the business name exactly as it appears on its website; `[verified preview URL]` = the verified public preview; `<SENDER_NAME>`, `<SENDER_PHONE>`, `<SENDER_WEBSITE>` = `settings.json` → `sender` values (`name`, `phone`, `website`); `<SENDER_CONTACT>` (signature line only) = `sender.calendly` when it is set and non-empty, otherwise `sender.phone`. `<CONTACT_LINE>` = when `sender.calendly` is set and non-empty: "Book a 15-minute call at a time that works for you here: <calendly link>." Otherwise the doc's original line: "Reach us at <SENDER_PHONE>." Never send a message that still contains a placeholder. Copy everything else exactly, including the subject. Do not add an observed issue, custom praise, other results/statistics, or a rewritten opening. **Do not mention any price in the first message** — no website price, hosting amount or package. The operator quotes pricing ($500 one-time + hosting, or the $750 analytics package) when the business replies. Do not spin messages or send follow-ups to hit a quota.
+
+## Email version with clickable links
+
+Contact forms accept plain text only, so form submissions use `outreach.txt` with the raw preview URL. When the message goes by email (Gmail, manual outreach), send the HTML version built by `python3 tools/outreach_html.py runs/JOB_ID/outreach.txt` (writes `outreach.html`) as `htmlBody`, with `outreach.txt` as the plain-text `body`. The HTML version keeps the same wording but turns the raw links into link text: "We also put together a [preview of an updated site]." , "Book a 15-minute call at a time that works for you [here]." and the signature "[Book a 15-minute call] | [zentek365.com]".
 
 ## Confirmation classification
 

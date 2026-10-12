@@ -15,15 +15,25 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 NPM = 'npm.cmd' if os.name == 'nt' else 'npm'
-TEMPLATES = {'electrician': {'name': 'Electrician · base design', 'path': ROOT / 'templates/electrician'}}
+VERCEL_ANALYTICS = '<script defer src="/_vercel/insights/script.js"></script>'
+TEMPLATES = {
+    'electrician': {'name': 'Electrician · base design', 'path': ROOT / 'templates/electrician'},
+    'plumber': {'name': 'Plumber · base design', 'path': ROOT / 'templates/plumber'},
+}
 
 
 def fingerprint(template):
     digest = hashlib.sha256()
-    for p in sorted(template.rglob('*')):
-        if not p.is_file() or any(x in p.relative_to(template).parts for x in ('node_modules', 'dist', '.vercel')):
+    skip = ('node_modules', 'dist', '.vercel')
+    files = []
+    # os.walk with pruning: never descend into node_modules (slow on network/FUSE drives).
+    for dirpath, dirnames, filenames in os.walk(template):
+        dirnames[:] = [d for d in dirnames if d not in skip]
+        files.extend(Path(dirpath) / f for f in filenames)
+    for p in sorted(files):
+        if not p.is_file():
             continue
-        digest.update(str(p.relative_to(template)).encode())
+        digest.update(p.relative_to(template).as_posix().encode())  # same on Windows and Linux
         # Normalise line endings so a Windows (CRLF) checkout matches the prepared build.
         digest.update(p.read_bytes().replace(b'\r\n', b'\n'))
     return digest.hexdigest()
@@ -43,7 +53,7 @@ def validate(data):
         raise ValueError('Business details must be an object')
     template = data.get('template', 'electrician')
     if template not in TEMPLATES:
-        raise ValueError('Choose an available template: electrician')
+        raise ValueError('Choose an available template: ' + ', '.join(TEMPLATES))
     color = data.get('theme_color', '#7cc0f7')
     if not isinstance(color, str) or not re.fullmatch(r'#[0-9a-fA-F]{6}', color):
         raise ValueError('Theme color must be a six-digit hex color, e.g. #2563eb')
@@ -85,6 +95,9 @@ def create(data, output_root=None):
         (site / 'business.js').write_text('window.WEBSITE_BUSINESS = ' + json.dumps(business, ensure_ascii=True) + ';\n', encoding='utf-8')
         page = (site / 'index.html').read_text(encoding='utf-8').replace('Your Company', html.escape(business['name'], quote=True))
         page = page.replace('in your area', 'for your home').replace('in your local area', 'for your home')
+        # Previews only: cookieless Vercel Web Analytics shows whether the prospect opened the link.
+        # client_release.py removes it for paid Firebase sites.
+        page = page.replace('</head>', VERCEL_ANALYTICS + '</head>', 1)
         (site / 'index.html').write_text(page, encoding='utf-8')
         shutil.copyfile(source / 'vercel.json', site / 'vercel.json')
         # `vercel link` writes .env.local (an OIDC token) into the site; never upload it.

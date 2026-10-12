@@ -17,7 +17,9 @@
   "sender": {
     "name": "<YOUR_FULL_NAME>",
     "company": "<YOUR_COMPANY>",
+    "website": "<YOUR_WEBSITE>",
     "phone": "<YOUR_PHONE>",
+    "calendly": "",
     "email": "<YOUR_EMAIL>",
     "first_name": "<YOUR_FIRST_NAME>",
     "last_name": "<YOUR_LAST_NAME>"
@@ -26,7 +28,7 @@
     "submit_by_default": false,
     "include_preview_link": true,
     "language": "en",
-    "offer": "Website is a one-time $500; the business also pays hosting costs (quoted by the operator on reply).",
+    "offer": "No price in the first message. Operator quotes on reply: website one-time $500 plus hosting.",
     "skip_required_surname": false,
     "allow_inspection_forms": true,
     "skip_captchas": true,

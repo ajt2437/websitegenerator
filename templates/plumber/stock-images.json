@@ -1,0 +1,88 @@
+[
+  {
+    "file": "hero.jpg",
+    "source": "https://unsplash.com/photos/i6SOaGYmNOA",
+    "image": "https://images.unsplash.com/photo-1768486143865-342d8cc12c90?auto=format&fit=crop&w=1800&q=85",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph"
+  },
+  {
+    "file": "interior.jpg",
+    "source": "https://unsplash.com/photos/Ed51pysYrg0",
+    "image": "https://images.unsplash.com/photo-1774578341925-cd64c07195e9?auto=format&fit=crop&w=1800&q=85",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph"
+  },
+  {
+    "file": "house-dusk.jpg",
+    "source": "https://unsplash.com/photos/Ywyr5vjnExA",
+    "image": "https://images.unsplash.com/photo-1776222075410-5acc108845c8?ixlib=rb-4.1.0&q=85&fm=jpg&crop=entropy&cs=srgb&dl=james-coleman-Ywyr5vjnExA-unsplash.jpg&w=1400",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Residential lighting at dusk \u2014 stock photograph"
+  },
+  {
+    "file": "plumber-wall.jpg",
+    "source": "https://unsplash.com/photos/c314Gh8dXAo",
+    "image": "https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Plumber working on a pipe in a wall \u2014 stock photograph"
+  },
+  {
+    "file": "under-sink.jpg",
+    "source": "https://unsplash.com/photos/wzIjLL4KB-4",
+    "image": "https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Plumber working on a pipe in a cabinet \u2014 stock photograph"
+  },
+  {
+    "file": "water-heater.jpg",
+    "source": "https://unsplash.com/photos/kxuz4YrLxSc",
+    "image": "https://images.unsplash.com/photo-1676210134190-3f2c0d5cf58d?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Man fixing a water heater \u2014 stock photograph"
+  },
+  {
+    "file": "faucet.jpg",
+    "source": "https://unsplash.com/photos/hQeKbHRudQY",
+    "image": "https://images.unsplash.com/photo-1584265549921-688f9eda95a0?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Stainless steel faucet \u2014 stock photograph"
+  },
+  {
+    "file": "faucet-open.jpg",
+    "source": "https://unsplash.com/photos/Vve7XkiUq_Y",
+    "image": "https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Person opening a faucet \u2014 stock photograph"
+  },
+  {
+    "file": "sink-drain.jpg",
+    "source": "https://unsplash.com/photos/_Uf5n4s-YD0",
+    "image": "https://images.unsplash.com/photo-1748399132710-d509b7ef3e64?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Water draining into a sink \u2014 stock photograph"
+  },
+  {
+    "file": "pipes.jpg",
+    "source": "https://unsplash.com/photos/6TIMIpsYOws",
+    "image": "https://images.unsplash.com/photo-1507337272725-eec743fbdc31?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Gray pipes mounted on a concrete wall \u2014 stock photograph"
+  },
+  {
+    "file": "wall-heater.jpg",
+    "source": "https://unsplash.com/photos/ii5IRyypPhs",
+    "image": "https://images.unsplash.com/photo-1575299737366-39c143459bc5?auto=format&fit=crop&w=1600&q=80",
+    "license": "https://unsplash.com/license",
+    "use": "Illustrative stock photograph",
+    "alt": "Water heater on a wall above a sink \u2014 stock photograph"
+  }
+]

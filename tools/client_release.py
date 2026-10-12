@@ -68,6 +68,7 @@ def prepare(site_id, site, domain=''):
     index = public / 'index.html'
     html = index.read_text(encoding='utf-8')
     html = re.sub(r'\s*<meta name="robots" content="noindex[^"]*"\s*/?>', '', html)
+    html = re.sub(r'\s*<script defer src="/_vercel/insights/script.js"></script>', '', html)  # preview-only analytics
     index.write_text(html, encoding='utf-8')
     robots = 'User-agent: *\nAllow: /\n' + (f'Sitemap: https://{domain}/sitemap.xml\n' if domain else '')
     (public / 'robots.txt').write_text(robots, encoding='utf-8')
