@@ -60,3 +60,16 @@ Per client:
    - Optional, to silence it: `gcloud config unset compute/region` and `gcloud config unset compute/zone`.
 3. Check: `gcloud auth print-access-token` prints a long token starting with `ya29.` (don't share it).
 4. Keep the Firebase APIs (including Firebase Hosting API) enabled. Verify at https://console.cloud.google.com/apis/dashboard (select your Firebase project) — Compute Engine API should not be listed.
+
+## Shared dashboard (teammates on other computers)
+
+The dashboard on your machine stays the one that runs batches. A read-only copy goes on Firebase so the people you list can check client progress from anywhere, signing in with their Google account. It updates within about 30 seconds while your dashboard is open.
+
+One-time (uses the same Firebase project and gcloud sign-in as client sites):
+1. Firebase console → Build → **Firestore Database** → Create database (production mode, any location).
+2. Firebase console → Build → **Authentication** → Get started → Sign-in method → enable **Google**.
+3. Firebase console → Project settings → Your apps → add a **Web app** (`</>`, no Hosting checkbox needed).
+4. In `settings.json` → `firebase.dashboard.viewers`, list the Google accounts allowed to see it (yours included).
+5. `py -3 tools\shared_dashboard.py deploy` → prints the link, `https://<project-id>.web.app` (the project's default Hosting site).
+
+After that, opening the dashboard (`Open Dashboard.bat`) also keeps the shared copy updated. To push once without the dashboard open: `py -3 tools\shared_dashboard.py sync`. Changing the viewer list needs `deploy` again. Several computers can sync at once: each adds its own batches to the shared view (named by computer name, or `firebase.dashboard.machine`), and a business both computers worked on shows once, with its latest update. Each computer still has its own ledger, so two computers can contact the same business twice; run batches for a city from one computer. Viewers can't queue batches or change anything; prospects' details (names, emails, phones, outreach messages) are visible to them.

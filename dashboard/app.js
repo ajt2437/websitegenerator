@@ -64,7 +64,7 @@ function render() {
   $('#queue-status').textContent = `${queuedBatches.length} batch${queuedBatches.length === 1 ? '' : 'es'} queued. Ask Codex to run them.`;
   if (!jobs.length) {
     const filtered = state.jobs.length > 0 && (batchFilter !== 'all' || stageFilter !== 'all');
-    $('#jobs').innerHTML = `<div class="empty"><div><div class="empty-mark" aria-hidden="true">✳</div><h3>${filtered ? 'No matches' : 'No businesses yet'}</h3><p>${filtered ? 'Try another filter.' : 'Queue your first batch above.'}</p></div></div>`;
+    $('#jobs').innerHTML = `<div class="empty"><div><div class="empty-mark" aria-hidden="true">✳</div><h3>${filtered ? 'No matches' : 'No businesses yet'}</h3><p>${filtered ? 'Try another filter.' : (viewer ? 'Nothing has been synced yet.' : 'Queue your first batch above.')}</p></div></div>`;
   } else {
     $('#jobs').innerHTML = jobs.map((job, index) => {
       const initials = String(job.name || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
@@ -95,23 +95,30 @@ function renderDialog() {
   const events = state.events.filter(event => String(event.job_id) === String(job.id)).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   $('#dialog-content').innerHTML = `<h2 id="dialog-title">${escapeHTML(job.name)}</h2><span class="stage ${category(job)}">${escapeHTML(stageLabel(job))}</span><div class="dialog-links">${original ? `<a href="${escapeHTML(original)}" target="_blank" rel="noopener noreferrer">Original ↗</a>` : ''}${preview ? `<a class="preview" href="${escapeHTML(preview)}" target="_blank" rel="noopener noreferrer">Preview ↗</a>` : ''}</div>${manualOutreach(job)}<section class="dialog-section"><div class="meta-label">Progress</div><p>${escapeHTML(job.detail || 'Waiting for an update from the coordinator.')}</p><div class="meta-label">Worker · updated</div><p>${escapeHTML(job.worker || 'Unassigned')} / ${escapeHTML(time(job.updated_at))}</p></section>${job.reason ? `<section class="dialog-section"><div class="meta-label">Reason</div><p>${escapeHTML(job.reason)}</p></section>` : ''}<section class="dialog-section"><div class="meta-label">Outreach</div><p>${escapeHTML(label(job.contact_status || 'not submitted'))}</p></section><section class="dialog-section"><div class="meta-label">Activity</div>${events.length ? `<ol class="timeline">${events.map(event => `<li>${escapeHTML(event.message)}<time class="timeline-time">${escapeHTML(time(event.created_at))}</time></li>`).join('')}</ol>` : '<p>No recorded activity yet.</p>'}</section>`;
 }
+// The shared (Firebase) viewer feeds state through window.dashboard instead of polling /api/state.
+const viewer = document.body.dataset.mode === 'viewer';
+function setConnection(kind, text) {
+  $('#connection').className = `connection ${kind}`;
+  $('#connection span').textContent = text;
+}
+function applyState(data, syncedAt = new Date()) {
+  for (const key of ['batches', 'jobs', 'events', 'workers']) state[key] = Array.isArray(data[key]) ? data[key] : [];
+  state.settings = data.settings || state.settings;
+  const signature = JSON.stringify(state);
+  connected = true;
+  setConnection('online', viewer ? `Updated ${time(syncedAt)}` : 'Live');
+  $('#clock').textContent = `LAST SYNC / ${syncedAt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  if (signature !== previousSignature) { previousSignature = signature; render(); }
+}
+window.dashboard = { applyState, setConnection };
 async function poll() {
   try {
     const response = await fetch('/api/state', { cache: 'no-store' });
     if (!response.ok) throw new Error(`Server returned ${response.status}`);
-    const data = await response.json();
-    for (const key of ['batches', 'jobs', 'events', 'workers']) state[key] = Array.isArray(data[key]) ? data[key] : [];
-    state.settings = data.settings || state.settings;
-    const signature = JSON.stringify(state);
-    connected = true;
-    $('#connection').className = 'connection online';
-    $('#connection span').textContent = 'Live';
-    $('#clock').textContent = `LAST SYNC / ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-    if (signature !== previousSignature) { previousSignature = signature; render(); }
+    applyState(await response.json());
   } catch {
     connected = false;
-    $('#connection').className = 'connection offline';
-    $('#connection span').textContent = previousSignature ? 'Reconnecting' : 'Offline';
+    setConnection('offline', previousSignature ? 'Reconnecting' : 'Offline');
   } finally { setTimeout(poll, document.hidden ? 8000 : 2000); }
 }
 $('#batch-form').addEventListener('submit', async (event) => {
@@ -162,7 +169,7 @@ $('#dialog-content').addEventListener('click', async event => {
 $('#close-dialog').addEventListener('click', () => $('#job-dialog').close());
 $('#job-dialog').addEventListener('close', () => { selectedJob = null; });
 $('#job-dialog').addEventListener('click', event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close(); } });
-render(); poll();
+render(); if (!viewer) poll();
 setInterval(refreshWorkerAges, 10000);
 
 

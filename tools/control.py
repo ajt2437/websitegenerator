@@ -355,6 +355,9 @@ def serve(port):
                 else: self.send(201,batch(data.get('industry'),data.get('city'),data.get('requested_count',5)))
             except (ValueError,AttributeError) as e: self.send(400,{'error':str(e)})
     server=ThreadingHTTPServer(('127.0.0.1',port),Handler)
+    import shared_dashboard, threading
+    if shared_dashboard.enabled():
+        threading.Thread(target=shared_dashboard.watch,args=(snapshot,lambda m: print(m,flush=True)),daemon=True).start()
     print(f'Contact sheet: http://127.0.0.1:{server.server_port}',flush=True)
     server.serve_forever()
 

@@ -6,11 +6,7 @@
   "batch_size": 5,
   "requested_workers": 5,
   "vercel_scope": "<YOUR_VERCEL_SCOPE>",
-  "vercel_cli": [
-    "pnpm",
-    "dlx",
-    "vercel@59.16.0"
-  ],
+  "vercel_cli": ["pnpm", "dlx", "vercel@59.16.0"],
   "firecrawl_env_file": ".env",
   "max_scrape_pages_per_business": 5,
   "max_discovery_candidates": 20,
@@ -88,7 +84,12 @@
   },
   "firebase": {
     "project_id": "<YOUR_FIREBASE_PROJECT_ID>",
-    "one_site_per_client": true
+    "one_site_per_client": true,
+    "dashboard": {
+      "viewers": ["<GOOGLE_ACCOUNT_1>", "<GOOGLE_ACCOUNT_2>"],
+      "site": "https://website-generator-dt.web.app",
+      "sync_seconds": 30
+    }
   },
   "packages": {
     "website": {
