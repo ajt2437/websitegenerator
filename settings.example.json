@@ -70,7 +70,7 @@
       "live": "Leads \u00b7 Live (Firebase)",
       "not_interested": "Leads \u00b7 Not Interested"
     },
-    "follow_up_days": 5
+    "follow_up_days": 7
   },
   "contracts": {
     "google_drive_leads_folder_id": "<LEADS_FOLDER_ID>",
