@@ -102,6 +102,17 @@ class LedgerTests(unittest.TestCase):
         with self.assertRaises(ValueError): control.contact_begin(jid,'worker','Retry','https://business0.example')
         control.cancel_batch(self.bid,'Stop')
         self.assertEqual(next(j for j in control.snapshot()['jobs'] if j['id']==jid)['stage'],'manual')
+    def test_manual_sent_marks_manual_job_sent_and_rejects_others(self):
+        self.bid=control.batch('Plumbers','Manual',1)['id']
+        jid=self.ready()
+        with self.assertRaises(ValueError): control.manual_sent(jid,'Texted')
+        control.manual_outreach(jid,'worker','No contact form','Proposal: https://preview.example','office@example.com','+16175550123')
+        with self.assertRaises(ValueError): control.manual_sent(jid,' ')
+        control.manual_sent(jid,'Texted by operator')
+        job=control.snapshot()['jobs'][0]
+        self.assertEqual((job['stage'],job['contact_status'],job['data']['outreach_mode']),('sent','sent','manual_sent'))
+        self.assertEqual(job['data']['manual_outreach']['email'],'office@example.com')
+        with self.assertRaises(ValueError): control.manual_sent(jid,'Again')
     def test_manual_rejects_unbuilt_or_reserved_jobs(self):
         jid=self.add(); control.claim(self.bid,'worker')
         with self.assertRaises(ValueError): control.manual_outreach(jid,'worker','No form','Hello')
