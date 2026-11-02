@@ -21,7 +21,7 @@ def build(text):
         e = re.sub(r'(Book a 15-minute call at a time that works for you )here: (https://\S+?)\.$',
                    lambda m: f'{m.group(1)}<a href="{m.group(2)}">here</a>.', e)
         # signature line: "<calendly or phone> | <website>"
-        m = re.fullmatch(r'(https://\S+) \| (\S+)', e)
+        m = re.fullmatch(r'(https://\S+) \| (?:https?://)?(\S+)', e)
         if m:
             e = f'<a href="{m.group(1)}">{CALL_TEXT}</a> | <a href="https://{m.group(2)}">{m.group(2)}</a>'
         else:
