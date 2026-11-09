@@ -42,4 +42,6 @@ No price, no new claims. Never send a message that still contains a placeholder.
 
 ## After sending
 
-On the card: add a comment `Follow-up sent <YYYY-MM-DD> by Gmail reply (message id ...)`, mark the due date complete, and move it to **Leads · Followed up**. The Monday 9:00 AM response check closes it as "no response" once the follow-up is at least 3 days old.
+On the card: add a comment `Follow-up sent <YYYY-MM-DD> by Gmail reply (message id ...)`, mark the due date complete, and move it to **Leads · Followed up**.
+
+In the dashboard ledger, using the Site ID / Job ID from the card: `python tools/control.py follow-up-sent --job JOB --evidence 'Gmail reply on <YYYY-MM-DD> in the original thread, message id ... (to EMAIL)'`. This adds the follow-up to the job's activity. It refuses a second follow-up for the same job; if it does, do not send again. The Monday 9:00 AM response check closes it as "no response" once the follow-up is at least 3 days old.

@@ -288,6 +288,20 @@ def manual_sent(jid, evidence):
         event(c, jid, 'Outreach sent outside the pipeline: ' + evidence.strip())
         return {'id': jid, 'stage': 'sent', 'contact_status': 'sent'}
 
+def follow_up_sent(jid, evidence):
+    """Record the one follow-up for a job whose first message already went out."""
+    if not evidence.strip(): raise ValueError('Provide how and when the follow-up was sent')
+    with connect() as c:
+        j = c.execute('SELECT * FROM jobs WHERE id=?', (jid,)).fetchone()
+        if not j: raise ValueError('Unknown job')
+        if j['stage'] not in ('sent', 'complete'): raise ValueError('Only sent or complete jobs can get a follow-up')
+        data = json.loads(j['data'])
+        if data.get('follow_up'): raise ValueError('Follow-up already recorded: ' + data['follow_up']['evidence'])
+        data['follow_up'] = {'evidence': evidence.strip(), 'at': now()}
+        c.execute('UPDATE jobs SET data=?, updated_at=? WHERE id=?', (json.dumps(data), now(), jid))
+        event(c, jid, 'Follow-up sent: ' + evidence.strip())
+        return {'id': jid, 'stage': j['stage'], 'follow_up': True}
+
 def record_sent(industry, city, name, url, preview_url, status, evidence):
     """Record outreach the user sent by hand, outside the worker pipeline."""
     if status not in ('submitted', 'sent') or not evidence.strip(): raise ValueError('Provide result and observed evidence')
@@ -391,6 +405,7 @@ def main():
     s=sub.add_parser('manual-outreach'); s.add_argument('--job',required=True); s.add_argument('--worker',required=True); s.add_argument('--reason',required=True); s.add_argument('--message-file',type=Path,required=True); s.add_argument('--email',default=''); s.add_argument('--phone',default='')
     s=sub.add_parser('record-sent'); s.add_argument('--industry',required=True); s.add_argument('--city',required=True); s.add_argument('--name',required=True); s.add_argument('--url',required=True); s.add_argument('--preview',required=True); s.add_argument('--status',choices=['submitted','sent'],required=True); s.add_argument('--evidence',required=True)
     s=sub.add_parser('manual-sent'); s.add_argument('--job',required=True); s.add_argument('--evidence',required=True)
+    s=sub.add_parser('follow-up-sent'); s.add_argument('--job',required=True); s.add_argument('--evidence',required=True)
     s=sub.add_parser('recover'); s.add_argument('--job',required=True); s.add_argument('--reason',required=True)
     s=sub.add_parser('batch-status'); s.add_argument('--batch',required=True); s.add_argument('--status',choices=['running','complete','blocked','exhausted'],required=True)
     s=sub.add_parser('cancel-batch'); s.add_argument('--batch',required=True); s.add_argument('--reason',required=True)
@@ -407,6 +422,7 @@ def main():
         elif a.cmd=='contact-finish': result=contact_finish(a.job,a.worker,a.status,a.evidence)
         elif a.cmd=='manual-outreach': result=manual_outreach(a.job,a.worker,a.reason,a.message_file.read_text(encoding='utf-8'),a.email,a.phone)
         elif a.cmd=='manual-sent': result=manual_sent(a.job,a.evidence)
+        elif a.cmd=='follow-up-sent': result=follow_up_sent(a.job,a.evidence)
         elif a.cmd=='record-sent': result=record_sent(a.industry,a.city,a.name,a.url,a.preview,a.status,a.evidence)
         elif a.cmd=='capacity':
             with connect() as c: c.execute("UPDATE config SET value=? WHERE key='max_workers'",(str(a.count),))
